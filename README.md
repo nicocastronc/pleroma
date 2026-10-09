@@ -1182,5 +1182,7 @@ Los resultados de rendimiento publicados corresponden a **entornos y condiciones
 La intención de esta documentación es mostrar **cómo está diseñado el sistema, por qué se tomaron determinadas decisiones y cómo se validó su comportamiento**, no presentar resultados de laboratorio como garantías universales de operación.
 
 **Nicolás Castro**
-Desarrollo de software e ingeniería de sistemas · Treetech
-treetech.ar · LinkedIn
+Desarrollo de software e ingeniería de sistemas 
+· Treetech: https://treetech.ar 
+· LinkedIn: https://www.linkedin.com/in/nicol%C3%A1s-castro-212b0820a/
+
