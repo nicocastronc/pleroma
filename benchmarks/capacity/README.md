@@ -126,7 +126,6 @@ El benchmark expone los siguientes parámetros de línea de comandos:
 
 El broker, la base de datos y los identificadores deben coincidir con el entorno bajo prueba.
 
-**Seguridad:** las credenciales de la base de datos deben suministrarse mediante variables de entorno u otro mecanismo de configuración seguro. No deben subirse secretos al repositorio.
 
 ## Requisitos previos
 
