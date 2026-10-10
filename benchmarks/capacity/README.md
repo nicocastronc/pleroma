@@ -183,6 +183,9 @@ El comportamiento observado mostró una transición desde un funcionamiento cerc
 
 Estos resultados corresponden exclusivamente a esa ejecución y configuración. No deben interpretarse como garantías universales de rendimiento ni como evidencia de que el sistema se comportará de la misma manera con otro hardware, condiciones de red, cantidad de sensores o carga de persistencia.
 
+<img width="1104" height="760" alt="Captura de pantalla 2026-10-09 220258" src="https://github.com/user-attachments/assets/c2642b47-302b-408d-b15e-438b9ff0873f" />
+
+
 ## Limitaciones
 
 La prueba actual tiene varias limitaciones importantes:
