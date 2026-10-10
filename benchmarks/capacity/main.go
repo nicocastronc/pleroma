@@ -69,8 +69,8 @@ type stepResult struct {
 func parseFlags() config {
 	var c config
 	var rates string
-	flag.StringVar(&c.dbURL, "db", getEnvOrDefault("DATABASE_URL", "postgres://pleroma:pleroma-dev@localhost:54320/pleroma?sslmode=disable"), "conexión a PostgreSQL/TimescaleDB (o usar env DATABASE_URL)")
-	flag.StringVar(&c.broker, "broker", getEnvOrDefault("MQTT_BROKER", "tcp://localhost:1883"), "broker MQTT (o usar env MQTT_BROKER)")
+	flag.StringVar(&c.dbURL, "db", getEnvOrDefault("DATABASE_URL"), "conexión a PostgreSQL/TimescaleDB (o usar env DATABASE_URL)")
+	flag.StringVar(&c.broker, "broker", getEnvOrDefault("MQTT_BROKER"), "broker MQTT (o usar env MQTT_BROKER)")
 	flag.StringVar(&rates, "rates", "25,50,75,100,125,150,200,250", "tasas a probar (msg/s), separadas por coma")
 	flag.DurationVar(&c.stepDur, "step", 20*time.Second, "duración de cada escalón (mínimo 10s)")
 	flag.DurationVar(&c.drainTimeout, "drain-timeout", 120*time.Second, "máximo a esperar que se vacíe el backlog tras cada escalón")
