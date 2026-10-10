@@ -861,88 +861,75 @@ processing rate > incoming rate
 
 # Pruebas de rendimiento
 
-El rendimiento de Pleroma no se presenta como un único número.
+El rendimiento de Pleroma no se resume en un único número. Se evalúan distintas capacidades del pipeline para entender cómo responde ante diferentes perfiles de carga, cuándo acumula atraso y cómo se recupera.
 
-Se separan diferentes capacidades.
+### Capacidades evaluadas
 
-### 1. Burst ingestion
+**1. Burst ingestion**
 
-¿Cuántos mensajes puede recibir el pipeline bajo una ráfaga controlada?
+¿Cuántos mensajes puede recibir el pipeline durante una ráfaga controlada?
 
-### 2. Sustainable processing
+**2. Sustainable processing**
 
-¿Cuántos eventos puede procesar y persistir de forma sostenida bajo una configuración determinada?
+¿Qué tasa de procesamiento y persistencia puede mantener bajo una configuración determinada?
 
-### 3. Backlog recovery
+**3. Backlog recovery**
 
-¿Qué ocurre cuando temporalmente ingresan más eventos de los que pueden procesarse?
+¿Qué ocurre cuando la tasa de entrada supera temporalmente la capacidad de procesamiento? ¿Cuánto tarda el sistema en recuperar el atraso?
 
-### 4. Saturation
+**4. Saturation analysis**
 
-¿Qué componente alcanza primero su límite?
+¿Cómo cambia el comportamiento del pipeline al aumentar la carga y dónde aparecen los primeros indicios de saturación?
 
-Puede ser:
+### Arquitectura evaluada
 
-```text
-Generator
-   ↓
-Network
-   ↓
-MQTT Broker
-   ↓
-Ingestion
-   ↓
-Durable Queue
-   ↓
-Rules
-   ↓
-Database
+El benchmark publica telemetría mediante MQTT y observa su persistencia en PostgreSQL/TimescaleDB, permitiendo relacionar la carga de entrada con el procesamiento y la recuperación del backlog.
+
+```mermaid
+flowchart LR
+    A[Generador de carga] --> B[Broker MQTT]
+    B --> C[Ingesta en Go]
+    C --> D[Spool de ingesta durable]
+    D --> E[Worker por lotes]
+    E --> F[Reglas y deduplicación]
+    F --> G[Procesamiento de integridad]
+    G --> H[(PostgreSQL / TimescaleDB)]
+    A -.-> I[Métricas del benchmark]
+    I -.-> H
 ```
 
-Por eso una prueba de rendimiento no responde solamente:
+Por eso, una prueba de rendimiento no responde solamente:
 
-> “¿Cuántos mensajes por segundo soporta Pleroma?”
+> ¿Cuántos mensajes por segundo puede recibir Pleroma?
 
-También responde:
+También busca responder:
 
-> **“¿Dónde está el límite y qué ocurre cuando lo alcanzamos?”**
+> **¿Cómo se comporta el pipeline cuando la carga supera temporalmente su capacidad de persistencia y cuánto tarda en recuperarse?**
 
----
+### Evidencia experimental
 
-# Resultados de benchmarking
+Las pruebas realizadas incluyen escenarios de publicación concurrente, ráfagas de mensajes y evaluación end-to-end del pipeline.
 
-Las pruebas actuales incluyen diferentes escenarios de carga, ráfagas y persistencia.
+Los ensayos de publicación y recepción permiten caracterizar el comportamiento del camino MQTT bajo cargas controladas. Las pruebas end-to-end incorporan, además, la observación de la persistencia efectiva, la acumulación de backlog y su drenaje posterior.
 
-Entre las mediciones realizadas:
+En una prueba escalonada de capacidad se observó acumulación creciente de backlog a partir de determinados niveles de carga, junto con una degradación de la tasa de persistencia en el escalón más exigente de la ejecución. Estos resultados permiten identificar zonas de operación y orientar futuras investigaciones sobre los límites del pipeline.
 
-| Escenario | Mensajes | Clientes | Resultado |
-|---|---:|---:|---|
-| Carga inicial | 100 | 5 | 91 msg/s |
-| Carga concurrente | 1.000 | 20 | 1.562 msg/s |
-| Ráfaga | 5.000 | 50 | 6.928 msg/s |
-| Ráfaga intensa | 10.000 | 100 | 26.168 msg/s |
-| Pipeline end-to-end | 2.000 | 20 | absorción + drenaje controlado |
+Los valores obtenidos corresponden a configuraciones y entornos experimentales específicos. No representan una capacidad universal ni una garantía de rendimiento para producción.
 
-Los valores anteriores corresponden a **escenarios concretos de benchmark**, no a una capacidad universal del producto.
+**[Ver metodología, métricas y resultados del benchmark de capacidad](benchmarks/capacity/README.md)**
 
-La persistencia end-to-end medida en la configuración actual se encuentra alrededor de:
+### Factores que afectan la capacidad
 
-> **124 eventos/s**
+El rendimiento de una instalación depende, entre otros factores, de:
 
-incluyendo procesamiento y persistencia.
+- Cantidad de dispositivos y frecuencia de adquisición.
+- Número de variables y tamaño de los mensajes.
+- Reglas configuradas y procesamiento asociado a cada evento.
+- Infraestructura de ejecución y base de datos.
+- Topología de red y configuración del broker MQTT.
+- Relación entre la tasa de entrada y la capacidad de persistencia.
 
-La capacidad real de una instalación depende de:
-
-- cantidad de dispositivos;
-- frecuencia de adquisición;
-- cantidad de variables;
-- tamaño de mensajes;
-- reglas configuradas;
-- eventos generados;
-- infraestructura;
-- base de datos;
-- topología de red;
-- comportamiento del broker.
+El objetivo del benchmarking es caracterizar el comportamiento del sistema, identificar cuellos de botella y medir su recuperación bajo carga, no establecer un único valor de capacidad aplicable a cualquier instalación.
 
 ---
 
@@ -956,11 +943,10 @@ Esto es importante porque:
 
 > **Un mensaje que no llegó al backend no puede atribuirse como una pérdida de persistencia de Pleroma.**
 
-La prueba no solo mide capacidad.
+Las prueba no solo mide capacidad.
 
 También permite localizar el punto exacto donde el sistema deja de poder garantizar el flujo bajo las condiciones experimentales.
 
-![Resultados de benchmark](docs/images/benchmark-results.png)
 
 
 ---
